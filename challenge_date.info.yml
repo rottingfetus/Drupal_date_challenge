@@ -1,0 +1,8 @@
+name: Challenge Date
+type: module
+description: Custom block for displaying how many days are until the event starts.
+package: Custom
+core: 8.x
+dependencies: 
+  - node
+  - block

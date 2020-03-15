@@ -1,0 +1,3 @@
+services:
+  challenge_date.date_service:
+    class: Drupal\challenge_date\DateService
