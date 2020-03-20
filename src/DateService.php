@@ -2,12 +2,23 @@
 
 namespace Drupal\challenge_date;
 
+/**
+ * This service is used to calculate how many days are between
+ * current and given date.  
+ */
 class DateService {
 
+    /**
+     * Function gets the date of the event as argument. $date is the type date/time string.
+     * Return value is the type of integer. 
+     * If the returning value is greater than 0, that tells us how many days are left from current to following date.
+     * If the returning value is equal to 0, that means that the dates are the same
+     * If the returning value is less than 0, that tells us that the following date already passed and how many days ago that happened.
+     */
     public function calculateDaysUntilEvent($date){
-        //get current time
+        //get current time of type Unix timestamp
         $currentTime = time();
-        //convert argument
+        //convert argument to type Unix timestamp
         $eventTime = strtotime($date);
         //calculate time difference
         $timeDiff = $eventTime - $currentTime;

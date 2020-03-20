@@ -6,6 +6,8 @@ use Drupal\Core\Block\BlockBase;
 use Drupal\challenge_date\DateService;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+
+use Drupal\Core\Routing\CurrentRouteMatch;
 /**
  * Provides a 'Challenge date' Block.
  * @Block(
@@ -19,11 +21,12 @@ class ChallengeDateBlock extends BlockBase implements ContainerFactoryPluginInte
 
     
     protected $serviceDate;
-
+    protected $routeMatch;
     
-    public function __construct(array $configuration, $plugin_id, $plugin_definition, DateService $serviceDate) {
+    public function __construct(array $configuration, $plugin_id, $plugin_definition, DateService $serviceDate, CurrentRouteMatch $route_match) {
         parent::__construct($configuration, $plugin_id, $plugin_definition);
         $this->serviceDate = $serviceDate;
+        $this->routeMatch = $route_match;
     }
     
     public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -31,44 +34,48 @@ class ChallengeDateBlock extends BlockBase implements ContainerFactoryPluginInte
           $configuration,
           $plugin_id,
           $plugin_definition,
-          $container->get('challenge_date.date_service')
+          $container->get('challenge_date.date_service'),
+          $container->get('current_route_match')
         );
     }
     public function build(){
 
-        $node = \Drupal::routeMatch()->getParameter('node');
-        $output = $node->getType();
-        if($node->getType() == "event") {
+        $output = "";
+        if($node = $this->routeMatch->getParameter('node')){
+            if($node->getType() == "event") {
             
             // get datetime value from node
             $date = $node->field_event_date->value;
 
-            // call service method to calculate difference in days
-            //$days = \Drupal::service('challenge_date.date_service')->calculateDaysUntilEvent($date);
-            
+            // call service method to calculate difference in days         
             $days = $this->serviceDate->calculateDaysUntilEvent($date);
+
             // check the result of method and handle the data
             if($days >= 1){
-                $output = $days . " days left until event starts.";
+                $output = $days . t(' days left until event starts.');
             }
             else if($days == 0){
-                $output = "This event is happening today.";
+                $output = t('This event is happening today.');
             }
             else{
-                $output = "This event already passed.";
+                $output = t('This event already passed.');
             }
-        }else {
+            }else {
             // display error
-            $output = "This block is intended only for events.";
+            $output = t('This block is intended only for events.');
+            }
+        }
+        else{
+            $output = t('This block is intended only for events.');
         }
     
           return array(
             // output
-            '#markup' => $output,
-            // prevent block caching
-            '#cache' => [
-              'max-age' => 0,
-              ],
+            '#markup' => $output,          
           );
+    }
+    //overriding method to set cache to 0
+    public function getCacheMaxAge() {
+        return 0;
     }
 }
